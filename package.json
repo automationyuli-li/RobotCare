@@ -1,24 +1,47 @@
 {
   "name": "robotcare",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:db": "node scripts/test-connection.js",
+    "init:db": "node scripts/init-collections.js",
+    "setup": "npm install && npm run test:db && npm run init:db",
+    "clean": "rm -rf .next",
+    "reset": "rm -rf node_modules package-lock.json && npm install"
   },
   "dependencies": {
-    "next": "16.0.10",
-    "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "@cloudbase/node-sdk": "^2.11.0",
+    "@tiptap/extension-placeholder": "^3.17.1",
+    "@tiptap/react": "^3.17.1",
+    "@tiptap/starter-kit": "^3.17.1",
+    "bcryptjs": "^2.4.3",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
+    "formidable": "^3.5.4",
+    "framer-motion": "^12.23.26",
+    "lucide-react": "^0.309.0",
+    "next": "14.2.26",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwind-merge": "^2.2.1",
+    "tailwindcss": "^4.1.18",
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@fullhuman/postcss-purgecss": "^7.0.2",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/formidable": "^3.4.6",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "tailwindcss": "^4",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/uuid": "^9.0.7",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
     "typescript": "^5"
   }
 }
