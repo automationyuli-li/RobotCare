@@ -1,7 +1,9 @@
 // src/pages/api/health.ts - 健康检查
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectionPool } from '@/lib/db/connection-pool';
+import ConnectionPool from '@/lib/db/connection-pool';
 import { api, withErrorHandler } from '@/lib/api';
+
+const connectionPool = ConnectionPool.getInstance();
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

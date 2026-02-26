@@ -96,6 +96,23 @@ class ConnectionPool {
     return this.getConnection();
   }
 
+  async healthCheck(): Promise<{ healthy: boolean; latency?: number; error?: string }> {
+    const start = Date.now();
+    try {
+      // 尝试执行一个简单操作：获取所有集合名称（或使用其他轻量级查询）
+      // CloudBase 文档型数据库可以通过 collection.get() 但可能耗时，建议使用 serverDate 或其他方式
+      // 这里以获取集合列表为例（需要 db 实例支持）
+      const collections = await this.db.listCollections(); // 具体方法依 SDK 版本而定
+      // 如果 SDK 没有 listCollections，可以尝试执行一个简单的 count 查询，如：
+      // await this.db.collection('any_collection').count();
+      
+      const latency = Date.now() - start;
+      return { healthy: true, latency };
+    } catch (error: any) {
+      return { healthy: false, error: error.message };
+    }
+  }
+
   // 释放连接
   public releaseConnection(db: any): void {
     const connection = this.connections.find(conn => conn.db === db);
