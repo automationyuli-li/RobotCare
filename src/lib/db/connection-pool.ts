@@ -31,6 +31,11 @@ class ConnectionPool {
       const secretId = process.env.CLOUDBASE_SECRET_ID;
       const secretKey = process.env.CLOUDBASE_SECRET_KEY;
 
+       // 调试：打印变量是否存在（不打印值）
+      console.log('CLOUDBASE_ENV_ID 是否存在:', !!envId);
+      console.log('CLOUDBASE_SECRET_ID 是否存在:', !!secretId);
+      console.log('CLOUDBASE_SECRET_KEY 是否存在:', !!secretKey);
+
       if (!envId || !secretId || !secretKey) {
         throw new Error('❌ CloudBase 环境变量未正确配置，请检查 .env.local 文件');
       }
