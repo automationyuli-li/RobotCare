@@ -1,5 +1,6 @@
 console.log('🔥🔥🔥 LOGIN API CALLED 🔥🔥🔥');
 console.log('环境变量检查:', {
+  asEnvId: !!process.env.TEST_ONLY,
   hasEnvId: !!process.env.CLOUDBASE_ENV_ID,
   hasSecretId: !!process.env.CLOUDBASE_SECRET_ID,
   hasSecretKey: !!process.env.CLOUDBASE_SECRET_KEY,
