@@ -59,8 +59,9 @@ export default function InviteRegisterPage() {
       try {
         const response = await fetch(`/api/invitations/validate?token=${token}`);
         const data = await response.json();
-        
-        if (data.success && data.data.valid) {
+
+        // 仅允许明确标记为 customer 的邀请在此页面完成注册
+        if (data.success && data.data.valid && data.data.invitation_type === 'customer') {
           setInvitation(data.data);
           // 预填邮箱
           setFormData(prev => ({
@@ -69,6 +70,7 @@ export default function InviteRegisterPage() {
           }));
         } else {
           setError(data.error || '邀请链接无效或已过期');
+          setInvitation(null);
         }
       } catch (error) {
         setError('验证邀请失败');

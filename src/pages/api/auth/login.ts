@@ -1,11 +1,3 @@
-console.log('🔥🔥🔥 LOGIN API CALLED 🔥🔥🔥');
-console.log('环境变量检查:', {
-  asEnvId: !!process.env.TEST_ONLY,
-  hasEnvId: !!process.env.CLOUDBASE_ENV_ID,
-  hasSecretId: !!process.env.CLOUDBASE_SECRET_ID,
-  hasSecretKey: !!process.env.CLOUDBASE_SECRET_KEY,
-});
-
 // src/pages/api/auth/login.ts - 用户登录
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db/operations';

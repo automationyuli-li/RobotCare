@@ -156,7 +156,7 @@ export default function ServiceProviderRegisterPage() {
         throw new Error(data.error || '注册失败');
       }
 
-      setSuccess('注册成功！正在跳转到登录页面...');
+      setSuccess('注册成功！请查收邮件完成邮箱验证后再登录。正在跳转到登录页面...');
       
       // 3秒后跳转到登录页
       setTimeout(() => {

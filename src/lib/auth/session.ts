@@ -61,7 +61,7 @@ export class SessionManager {
 
   async deleteSession(sessionToken: string): Promise<boolean> {
     try {
-      await db.delete('sessions', sessionToken);
+      await db.delete('sessions', {sessionId: sessionToken});
       return true;
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -79,6 +79,20 @@ export class SessionManager {
     } catch (error) {
       console.error('Destroy session error:', error);
       return false;
+    }
+  }
+  
+  async cleanupExpiredSessions(): Promise<number> {
+    try {
+      const now = new Date();
+      const result = await db.deleteMany('sessions', {
+        expiresAt: { $lt: now }, // 已经过期的
+      });
+      console.log('Cleaned expired sessions:', result);
+      return result.deletedCount || 0;
+    } catch (error) {
+      console.error('Cleanup expired sessions error:', error);
+      throw error;
     }
   }
 }

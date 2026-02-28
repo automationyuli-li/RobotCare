@@ -53,7 +53,9 @@ export default withErrorHandler(async function handler(
       return api.badRequest(res, '邮箱已被注册');
     }
 
-    // 3. 创建客户组织
+    // 3. 创建客户组织（与邀请中的服务商建立关联）
+    const serviceProviderId = invitation.inviter_org_id || invitation.service_provider_id;
+
     const orgData = {
       _id: uuidv4(),
       name: organizationName,
@@ -65,7 +67,7 @@ export default withErrorHandler(async function handler(
       max_customers: 0,
       max_engineers: 2,
       status: 'active',
-      service_provider_id: invitation.inviter_org_id, // 关联服务商
+      service_provider_id: serviceProviderId, // 关联服务商
       created_at: new Date(),
       updated_at: new Date(),
     };
@@ -88,15 +90,15 @@ export default withErrorHandler(async function handler(
 
     const user = await db.insert('users', userData);
 
-    // 5. 查找或创建服务合约
+    // 5. 查找并激活服务合约
     const contract = await db.findOne('service_contracts', {
-    service_provider_id: invitation.inviter_org_id,
-    invitation_email: contactEmail,
-    status: 'pending',
+      service_provider_id: serviceProviderId,
+      invitation_email: contactEmail,
+      status: 'pending',
     });
 
     if (contract) {
-    await db.update('service_contracts', contract._id, {
+      await db.update('service_contracts', contract._id, {
         end_customer_id: organization._id,
         start_date: new Date(),
         end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
@@ -104,7 +106,7 @@ export default withErrorHandler(async function handler(
         accepted_by: user._id,
         accepted_at: new Date(),
         updated_at: new Date(),
-    });
+      });
     }
 
     // 6. 更新邀请状态
@@ -124,7 +126,7 @@ export default withErrorHandler(async function handler(
       message: `${organizationName} 已接受您的邀请并完成注册`,
       data: {
         organization_id: organization._id,
-        contract_id: contract._id,
+        contract_id: contract ? contract._id : null,
       },
       read: false,
       created_at: new Date(),

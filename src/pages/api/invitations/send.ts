@@ -8,6 +8,7 @@ import {
   withAuth, 
   withPermission 
 } from '@/lib/api';
+import { sendEmail } from '@/lib/email/sendEmail';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -111,14 +112,76 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     };
     
     const invitation = await db.insert('invitations', invitationData);
-    
-    // 生成邀请链接（实际应该通过邮件发送）
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const invitationUrl = `${baseUrl}/register/invite/${invitationToken}`;
-    
-    // 注意：这里应该集成邮件发送服务
-    console.log('📧 邀请链接:', invitationUrl);
-    
+
+    // 生成邀请链接并发送邮件
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+    const invitationUrl =
+      invitation_type === 'engineer'
+        ? `${baseUrl}/register/engineer/${invitationToken}`
+        : `${baseUrl}/register/invite/${invitationToken}`;
+
+    try {
+      const subject =
+        invitation_type === 'engineer'
+          ? 'RobotCare：邀请您作为工程师加入团队'
+          : 'RobotCare：邀请您作为终端客户加入平台';
+
+      const roleLabel =
+        role === 'service_engineer'
+          ? '服务商工程师'
+          : role === 'end_engineer'
+          ? '客户工程师'
+          : '客户管理员';
+
+      const html =
+        invitation_type === 'engineer'
+          ? `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6;">
+              <h2>团队邀请</h2>
+              <p>${organization.name} 邀请您以 <strong>${roleLabel}</strong> 身份加入 RobotCare 团队。</p>
+              <p style="margin: 24px 0;">
+                <a href="${invitationUrl}" style="display: inline-block; padding: 10px 16px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px;">
+                  接受邀请并创建账户
+                </a>
+              </p>
+              <p style="color: #6b7280; font-size: 12px;">如果按钮不可用，请复制此链接到浏览器打开：<br/>${invitationUrl}</p>
+            </div>
+          `
+          : `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6;">
+              <h2>合作邀请</h2>
+              <p>${organization.name} 邀请您作为终端客户加入 RobotCare 平台。</p>
+              <p style="margin: 24px 0;">
+                <a href="${invitationUrl}" style="display: inline-block; padding: 10px 16px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 8px;">
+                  接受邀请并注册
+                </a>
+              </p>
+              <p style="color: #6b7280; font-size: 12px;">如果按钮不可用，请复制此链接到浏览器打开：<br/>${invitationUrl}</p>
+            </div>
+          `;
+
+      const text =
+        invitation_type === 'engineer'
+          ? `${organization.name} 邀请您以 ${roleLabel} 身份加入 RobotCare 团队，请打开链接创建账户：${invitationUrl}`
+          : `${organization.name} 邀请您作为终端客户加入 RobotCare 平台，请打开链接注册：${invitationUrl}`;
+
+      const emailResult = await sendEmail({
+        to: invitee_email,
+        subject,
+        text,
+        html,
+      });
+
+      if (emailResult.simulated) {
+        console.log('📧 邀请链接（SMTP未配置，模拟发送）:', invitationUrl);
+      }
+    } catch (emailErr: any) {
+      console.error('发送邀请邮件失败（记录仍然创建）:', emailErr);
+    }
+
     return api.created(res, {
       invitation,
       invitation_url: invitationUrl,

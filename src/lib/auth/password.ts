@@ -21,8 +21,8 @@ export class PasswordManager {
   } {
     const errors: string[] = [];
     
-    if (password.length < 6) {
-      errors.push('密码长度至少6位');
+    if (password.length < 8) {
+      errors.push('密码长度至少8位');
     }
     
     if (password.length > 100) {

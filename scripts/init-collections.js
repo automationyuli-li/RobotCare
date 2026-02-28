@@ -18,6 +18,7 @@ const CORE_COLLECTIONS = [
   { name: 'library_categories', desc: '知识库分类列表' },
   { name: 'maintenance_log', desc: '维修记录表' },
   { name: 'sessions', desc: 'session表' },
+  { name: 'email_verifications', desc: '邮箱验证表' },
 ];
 
 async function initCollections() {
