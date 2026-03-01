@@ -1,4 +1,4 @@
-// src/pages/api/auth/register.ts - 修复版
+// src/pages/api/auth/register.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import { db } from '@/lib/db/operations';

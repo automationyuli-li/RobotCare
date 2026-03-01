@@ -1,4 +1,11 @@
-import nodemailer from 'nodemailer';
+import * as postmark from "postmark";
+
+/**
+ * Note: We use process.env directly for the Postmark Token as it's a single key,
+ * but we keep your getRequiredEnv logic for the "From" address and safety checks.
+ */
+const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
+const client = postmarkToken ? new postmark.ServerClient(postmarkToken) : null;
 
 type SendEmailParams = {
   to: string;
@@ -16,41 +23,33 @@ export async function sendEmail(params: SendEmailParams): Promise<{
   sent: boolean;
   simulated: boolean;
 }> {
-  const host = getRequiredEnv('SMTP_HOST');
-  const portRaw = getRequiredEnv('SMTP_PORT');
-  const user = getRequiredEnv('SMTP_USER');
-  const pass = getRequiredEnv('SMTP_PASS');
-  const from = getRequiredEnv('SMTP_FROM');
+  // Postmark primarily needs the Server Token and a Verified "From" address
+  const from = getRequiredEnv('SMTP_FROM'); // This should now be your verified Postmark email/domain
 
-  // 允许在未配置 SMTP 时“逻辑可用”（账号仍会 pending，无法登录），但实际邮件不会发出。
-  if (!host || !portRaw || !user || !pass || !from) {
-    console.warn('[email] SMTP not configured; simulating sendEmail', {
+  // If Postmark isn't configured, simulate the send (keeping your original logic)
+  if (!client || !from) {
+    console.warn('[email] Postmark (POSTMARK_SERVER_TOKEN or SMTP_FROM) not configured; simulating sendEmail', {
       to: params.to,
       subject: params.subject,
     });
     return { sent: false, simulated: true };
   }
 
-  const port = Number(portRaw);
-  if (!Number.isFinite(port)) {
-    throw new Error('Invalid SMTP_PORT');
+  try {
+    // Replace Nodemailer's transporter.sendMail with Postmark's client.sendEmail
+    await client.sendEmail({
+      "From": from,
+      "To": params.to,
+      "Subject": params.subject,
+      "HtmlBody": params.html,
+      "TextBody": params.text || "Please view this email in an HTML compatible client.",
+      "MessageStream": "outbound"
+    });
+
+    return { sent: true, simulated: false };
+  } catch (error) {
+    console.error('[email] Postmark send error:', error);
+    // Rethrow or return sent: false depending on how you want your UI to react
+    throw error; 
   }
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
-
-  await transporter.sendMail({
-    from,
-    to: params.to,
-    subject: params.subject,
-    html: params.html,
-    text: params.text,
-  });
-
-  return { sent: true, simulated: false };
 }
-
