@@ -13,6 +13,8 @@ const publicPaths = [
   '/api/auth/register',
   '/api/invitations/validate',
   '/api/health',
+  '/verify-email',
+  '/api/auth/verify-email',
 ];
 
 const sessionCache = new Map<string, { valid: boolean; expires: number }>();
