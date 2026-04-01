@@ -10,10 +10,7 @@ import {
   LogIn, 
   Sparkles, 
   Shield, 
-  Bot,
-  UserCog,
-  Building2,
-  Zap
+  Bot
 } from 'lucide-react';
 import { RobotLogo } from '@/components/animations/RobotLogo';
 import { Input } from '@/components/ui/Input';
@@ -26,7 +23,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showDemoTips, setShowDemoTips] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
@@ -71,52 +67,6 @@ export default function LoginPage() {
       setError(err.message || '登录过程中发生错误');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (role: string) => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      // 这里可以使用预设的演示账户
-      const demoAccounts = {
-        service_admin: { email: 'admin@robotcare.demo', password: 'demo123' },
-        end_admin: { email: 'customer@robotcare.demo', password: 'demo123' },
-        engineer: { email: 'engineer@robotcare.demo', password: 'demo123' }
-      };
-      
-      const account = demoAccounts[role as keyof typeof demoAccounts];
-      
-      setEmail(account.email);
-      setPassword(account.password);
-      
-      // 模拟登录流程
-      setTimeout(() => {
-        setSuccess(`正在以${getRoleName(role)}身份登录...`);
-        setTimeout(() => {
-          // 根据角色跳转
-          if (role === 'service_admin') {
-            router.push('/service-provider/dashboard');
-          } else if (role === 'end_admin') {
-            router.push('/end-customer/dashboard');
-          } else {
-            router.push('/active/engineer');
-          }
-        }, 800);
-      }, 500);
-      
-    } catch (error) {
-      setError('演示登录失败');
-    }
-  };
-
-  const getRoleName = (role: string) => {
-    switch (role) {
-      case 'service_admin': return '服务商管理员';
-      case 'end_admin': return '终端客户管理员';
-      case 'engineer': return '工程师';
-      default: return '用户';
     }
   };
 
@@ -304,116 +254,25 @@ export default function LoginPage() {
                   {loading ? '登录中...' : '登录账户'}
                 </Button>
               </form>
-
-              {/* 演示登录选项 */}
-              <div className="mt-8">
-                <button
-                  onClick={() => setShowDemoTips(!showDemoTips)}
-                  className="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 
-                           text-gray-600 hover:border-blue-300 hover:text-blue-600 
-                           transition-colors text-sm font-medium"
-                >
-                  <div className="flex items-center justify-center space-x-2">
-                    <Zap className="w-4 h-4" />
-                    <span>快速体验演示账户</span>
-                  </div>
-                </button>
-
-                <AnimatePresence>
-                  {showDemoTips && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 space-y-3 overflow-hidden"
-                    >
-                      <p className="text-sm text-gray-500 text-center">
-                        点击以下角色快速体验不同视角
-                      </p>
-                      
-                      <div className="grid grid-cols-3 gap-3">
-                        <button
-                          onClick={() => handleDemoLogin('service_admin')}
-                          disabled={loading}
-                          className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 
-                                   border border-blue-200 hover:border-blue-300 hover:shadow-md 
-                                   transition-all text-center group"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 
-                                        flex items-center justify-center mx-auto mb-2 group-hover:scale-110 
-                                        transition-transform">
-                            <UserCog className="w-5 h-5 text-white" />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900">服务商</p>
-                          <p className="text-xs text-gray-500 mt-1">管理员</p>
-                        </button>
-
-                        <button
-                          onClick={() => handleDemoLogin('end_admin')}
-                          disabled={loading}
-                          className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 
-                                   border border-green-200 hover:border-green-300 hover:shadow-md 
-                                   transition-all text-center group"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-green-500 to-green-600 
-                                        flex items-center justify-center mx-auto mb-2 group-hover:scale-110 
-                                        transition-transform">
-                            <Building2 className="w-5 h-5 text-white" />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900">终端客户</p>
-                          <p className="text-xs text-gray-500 mt-1">管理员</p>
-                        </button>
-
-                        <button
-                          onClick={() => handleDemoLogin('engineer')}
-                          disabled={loading}
-                          className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 
-                                   border border-purple-200 hover:border-purple-300 hover:shadow-md 
-                                   transition-all text-center group"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 
-                                        flex items-center justify-center mx-auto mb-2 group-hover:scale-110 
-                                        transition-transform">
-                            <Bot className="w-5 h-5 text-white" />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900">工程师</p>
-                          <p className="text-xs text-gray-500 mt-1">技术支持</p>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
             </div>
 
             {/* 底部链接区 */}
             <div className="px-8 py-6 border-t border-gray-200/50 bg-gray-50/50">
-              <div className="text-center space-y-4">
-                <div className="flex items-center justify-center space-x-4 text-sm">
-                  <a 
-                    href="/forgot-password" 
-                    className="text-gray-600 hover:text-blue-500 transition-colors 
-                             hover:underline decoration-2"
-                  >
-                    忘记密码？
-                  </a>
-                  <span className="text-gray-300">•</span>
-                  <a 
-                    href="/register/service-provider" 
-                    className="text-gray-600 hover:text-green-500 transition-colors 
-                             hover:underline decoration-2 font-medium"
-                  >
-                    注册服务商账户
-                  </a>
-                </div>
-                
-                <div className="text-xs text-gray-400 space-y-1">
-                  <p className="flex items-center justify-center">
-                    <Shield className="w-3 h-3 mr-1" />
-                    您的数据安全是我们的首要任务
-                  </p>
-                  <p>由腾讯云提供企业级数据安全保障</p>
-                </div>
+              <div className="text-center">
+                <a 
+                  href="/forgot-password" 
+                  className="text-gray-600 hover:text-blue-500 transition-colors 
+                           hover:underline decoration-2 text-sm"
+                >
+                  忘记密码？
+                </a>
+              </div>
+              <div className="text-xs text-gray-400 space-y-1 mt-4">
+                <p className="flex items-center justify-center">
+                  <Shield className="w-3 h-3 mr-1" />
+                  您的数据安全是我们的首要任务
+                </p>
+                <p>由腾讯云提供企业级数据安全保障</p>
               </div>
             </div>
           </div>

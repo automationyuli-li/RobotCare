@@ -1,22 +1,24 @@
-// src/app/register/service-provider/page.tsx
+// src/app/register/[secret]/service-provider/page.tsx
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { 
-  Building2, 
-  Mail, 
-  Phone, 
-  User, 
-  Lock, 
-  CheckCircle, 
+import {
+  Building2,
+  Mail,
+  Phone,
+  User,
+  Lock,
+  CheckCircle,
   AlertCircle,
   ArrowLeft,
   Shield,
   Users,
   Cpu,
-  CreditCard
+  CreditCard,
+  Briefcase,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -36,7 +38,7 @@ const SUBSCRIPTION_PLANS = [
       { text: '基础技术支持', icon: Shield },
     ],
     badge: '推荐试用',
-    badgeColor: 'bg-green-100 text-green-800'
+    badgeColor: 'bg-green-100 text-green-800',
   },
   {
     id: 'silver',
@@ -53,7 +55,7 @@ const SUBSCRIPTION_PLANS = [
     ],
     popular: true,
     badge: '最受欢迎',
-    badgeColor: 'bg-blue-100 text-blue-800'
+    badgeColor: 'bg-blue-100 text-blue-800',
   },
   {
     id: 'gold',
@@ -68,7 +70,7 @@ const SUBSCRIPTION_PLANS = [
       { text: '优先技术支持', icon: Shield },
       { text: 'API访问权限', icon: CreditCard },
       { text: '自定义报告', icon: CreditCard },
-    ]
+    ],
   },
   {
     id: 'premium',
@@ -83,17 +85,28 @@ const SUBSCRIPTION_PLANS = [
       { text: '专属技术支持', icon: Shield },
       { text: '高级API权限', icon: CreditCard },
       { text: '定制化开发', icon: CreditCard },
-    ]
-  }
+    ],
+  },
 ];
 
-export default function ServiceProviderRegisterPage() {
+interface PageProps {
+  params: {
+    secret: string;
+  };
+}
+
+export default function ServiceProviderRegisterPage({ params }: PageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('free');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
+  // 验证 secret，如果不匹配则 404
+  if (params.secret !== process.env.NEXT_PUBLIC_REGISTER_SECRET && params.secret !== process.env.REGISTER_SECRET) {
+    notFound();
+  }
+
   // 表单状态
   const [formData, setFormData] = useState({
     organizationName: '',
@@ -103,14 +116,16 @@ export default function ServiceProviderRegisterPage() {
     adminPassword: '',
     confirmPassword: '',
     adminDisplayName: '',
-    acceptTerms: false,
+    industry: '',
+    province: '',
+    city: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }));
   };
 
@@ -121,12 +136,6 @@ export default function ServiceProviderRegisterPage() {
     setSuccess('');
 
     // 表单验证
-    if (!formData.acceptTerms) {
-      setError('请阅读并同意服务条款和隐私政策');
-      setLoading(false);
-      return;
-    }
-
     if (formData.adminPassword !== formData.confirmPassword) {
       setError('两次输入的密码不一致');
       setLoading(false);
@@ -147,6 +156,11 @@ export default function ServiceProviderRegisterPage() {
           adminPassword: formData.adminPassword,
           adminDisplayName: formData.adminDisplayName,
           subscriptionPlan: selectedPlan,
+          metadata: {
+            industry: formData.industry,
+            province: formData.province,
+            city: formData.city,
+          },
         }),
       });
 
@@ -156,13 +170,10 @@ export default function ServiceProviderRegisterPage() {
         throw new Error(data.error || '注册失败');
       }
 
-      setSuccess('注册成功！请查收邮件完成邮箱验证后再登录。正在跳转到登录页面...');
-      
-      // 3秒后跳转到登录页
+      setSuccess('注册申请已提交，请等待后台审核。审核通过后我们会邮件通知您。');
       setTimeout(() => {
         router.push('/');
       }, 3000);
-
     } catch (err: any) {
       console.error('注册错误:', err);
       setError(err.message || '注册过程中发生错误');
@@ -185,8 +196,7 @@ export default function ServiceProviderRegisterPage() {
               返回登录
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-green-400 
-                            flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-green-400 flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <span className="text-lg font-semibold text-gray-900">RobotCare</span>
@@ -203,8 +213,11 @@ export default function ServiceProviderRegisterPage() {
             <div className="flex items-center">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center 
-                                ${step === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      step === 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'
+                    }`}
+                  >
                     {step}
                   </div>
                   {step < 3 && (
@@ -214,9 +227,7 @@ export default function ServiceProviderRegisterPage() {
               ))}
             </div>
           </div>
-          <p className="text-center text-gray-600 text-sm">
-            步骤 1 / 3 · 填写基本信息
-          </p>
+          <p className="text-center text-gray-600 text-sm">步骤 1 / 3 · 填写基本信息</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -229,9 +240,7 @@ export default function ServiceProviderRegisterPage() {
               className="bg-white rounded-2xl border border-gray-200 p-8"
             >
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  创建服务商账户
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">创建服务商账户</h1>
                 <p className="text-gray-600">
                   注册成为RobotCare服务商，开始管理您的机器人和客户
                 </p>
@@ -269,7 +278,7 @@ export default function ServiceProviderRegisterPage() {
                     <Building2 className="w-5 h-5 mr-2 text-blue-500" />
                     组织信息
                   </h3>
-                  
+
                   <Input
                     icon={<Building2 className="w-4 h-4" />}
                     label="公司名称"
@@ -305,6 +314,39 @@ export default function ServiceProviderRegisterPage() {
                       disabled={loading}
                     />
                   </div>
+
+                  {/* 新增行业字段 */}
+                  <Input
+                    icon={<Briefcase className="w-4 h-4" />}
+                    label="所属行业"
+                    name="industry"
+                    placeholder="例如：工业自动化、服务机器人"
+                    value={formData.industry}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+
+                  {/* 地区：省份+城市 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      icon={<MapPin className="w-4 h-4" />}
+                      label="省份"
+                      name="province"
+                      placeholder="例如：广东省"
+                      value={formData.province}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                    <Input
+                      icon={<MapPin className="w-4 h-4" />}
+                      label="城市"
+                      name="city"
+                      placeholder="例如：深圳市"
+                      value={formData.city}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </div>
                 </div>
 
                 {/* 管理员信息 */}
@@ -313,7 +355,7 @@ export default function ServiceProviderRegisterPage() {
                     <User className="w-5 h-5 mr-2 text-green-500" />
                     管理员信息
                   </h3>
-                  
+
                   <Input
                     icon={<Mail className="w-4 h-4" />}
                     label="管理员邮箱"
@@ -364,49 +406,8 @@ export default function ServiceProviderRegisterPage() {
                   </div>
                 </div>
 
-                {/* 条款同意 */}
-                <div className="pt-4 border-t border-gray-200">
-                  <label className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="acceptTerms"
-                      checked={formData.acceptTerms}
-                      onChange={handleChange}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      disabled={loading}
-                    />
-                    <div className="text-sm">
-                      <span className="text-gray-900 font-medium">
-                        我已阅读并同意
-                      </span>
-                      {' '}
-                      <a 
-                        href="/terms" 
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        服务条款
-                      </a>
-                      {' '}和{' '}
-                      <a 
-                        href="/privacy" 
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        隐私政策
-                      </a>
-                      <p className="text-gray-500 mt-1">
-                        我们将根据服务条款和隐私政策处理您的数据
-                      </p>
-                    </div>
-                  </label>
-                </div>
-
-                <Button
-                  type="submit"
-                  loading={loading}
-                  fullWidth
-                  className="mt-6"
-                >
-                  {loading ? '正在注册...' : '创建服务商账户'}
+                <Button type="submit" loading={loading} fullWidth className="mt-6">
+                  {loading ? '正在提交...' : '提交注册申请'}
                 </Button>
               </form>
             </motion.div>
@@ -421,9 +422,7 @@ export default function ServiceProviderRegisterPage() {
               className="sticky top-24"
             >
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  选择服务套餐
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">选择服务套餐</h3>
                 <p className="text-gray-600 text-sm mb-6">
                   选择合适的套餐开始使用，支持随时升级
                 </p>
@@ -434,11 +433,11 @@ export default function ServiceProviderRegisterPage() {
                       key={plan.id}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all
-                                ${selectedPlan === plan.id 
-                                  ? 'border-blue-500 bg-blue-50/50' 
-                                  : 'border-gray-200 hover:border-gray-300'
-                                }`}
+                      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        selectedPlan === plan.id
+                          ? 'border-blue-500 bg-blue-50/50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
                       onClick={() => setSelectedPlan(plan.id)}
                     >
                       {plan.popular && (
@@ -450,7 +449,9 @@ export default function ServiceProviderRegisterPage() {
                       )}
 
                       {plan.badge && (
-                        <div className={`absolute -top-2 right-4 px-2 py-1 text-xs font-medium rounded-full ${plan.badgeColor}`}>
+                        <div
+                          className={`absolute -top-2 right-4 px-2 py-1 text-xs font-medium rounded-full ${plan.badgeColor}`}
+                        >
                           {plan.badge}
                         </div>
                       )}
@@ -476,32 +477,18 @@ export default function ServiceProviderRegisterPage() {
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200">
-                        <div className={`flex items-center justify-center py-2 px-4 rounded-lg
-                                      ${selectedPlan === plan.id 
-                                        ? 'bg-gradient-to-r from-blue-500 to-green-400 text-white' 
-                                        : 'bg-gray-100 text-gray-700'
-                                      }`}>
+                        <div
+                          className={`flex items-center justify-center py-2 px-4 rounded-lg ${
+                            selectedPlan === plan.id
+                              ? 'bg-gradient-to-r from-blue-500 to-green-400 text-white'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
                           {selectedPlan === plan.id ? '✓ 已选择' : '选择此套餐'}
                         </div>
                       </div>
                     </motion.div>
                   ))}
-                </div>
-
-                {/* 套餐提示 */}
-                <div className="mt-6 p-4 bg-blue-50/50 rounded-xl border border-blue-200">
-                  <div className="flex items-start space-x-3">
-                    <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-medium text-blue-800">套餐说明</p>
-                      <p className="text-blue-600 mt-1">
-                        • 所有套餐均包含基础功能<br/>
-                        • 超出部分按 ¥50/机器人/月 收费<br/>
-                        • 支持随时升级或降级套餐<br/>
-                        • 7天无理由退款保证
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
                 {/* 支持信息 */}
@@ -521,13 +508,10 @@ export default function ServiceProviderRegisterPage() {
           </div>
         </div>
 
-        {/* 页脚信息 */}
+        {/* 页脚（简化） */}
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p className="flex items-center justify-center">
             <Shield className="w-4 h-4 mr-2" />
-            注册即表示您同意我们的服务条款和隐私政策
-          </p>
-          <p className="mt-2 text-xs text-gray-400">
             RobotCare Vision 1.0 · 以机器人为中心的维保协作平台
           </p>
         </div>

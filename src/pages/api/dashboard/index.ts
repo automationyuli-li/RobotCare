@@ -62,6 +62,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 // 服务商管理员Dashboard数据
 async function getServiceProviderAdminData(user: any, res: NextApiResponse) {
   const serviceProviderId = user.org_id;
+  const org = await db.findOne('organizations', { _id: serviceProviderId });
+  const organizationName = org?.name || serviceProviderId;
   
   // 1. 获取客户数量
   const contracts = await db.find('service_contracts', {
@@ -94,7 +96,7 @@ async function getServiceProviderAdminData(user: any, res: NextApiResponse) {
   
   return api.success(res, {
     role: 'service_admin',
-    organization_name: user.organization?.name || user.org_id,
+    organization_name: organizationName,
     stats: {
       customers: customerCount,
       robots: robotCount,
@@ -183,6 +185,8 @@ async function getServiceProviderEngineerData(user: any, res: NextApiResponse) {
 // 终端客户管理员Dashboard数据
 async function getEndCustomerAdminData(user: any, res: NextApiResponse) {
   const customerId = user.org_id;
+  const org = await db.findOne('organizations', { _id: customerId });
+  const organizationName = org?.name || customerId;
   
   // 1. 获取机器人位置分布统计
   const robots = await db.find('robots', {
@@ -236,7 +240,7 @@ async function getEndCustomerAdminData(user: any, res: NextApiResponse) {
   
   return api.success(res, {
     role: 'end_admin',
-    organization_name: user.organization?.name || user.org_id,
+    organization_name: organizationName,
     robot_stats: {
       by_location: Object.entries(locationStats).map(([location, stats]) => ({
         location,
